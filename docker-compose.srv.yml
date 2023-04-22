@@ -1,0 +1,60 @@
+version: '3.5'
+services:
+  init-pubsub:
+    build:
+      context: docker/pubsub
+    environment:
+      PUBSUB_EMULATOR_HOST: pubsub:$PUBSUB_PORT
+    depends_on:
+      pubsub:
+        condition: service_healthy
+    networks:
+      - internal
+  pubsub:
+    image: google/cloud-sdk
+    ports:
+      - '8085:8085'
+    environment:
+      PUBSUB_PROJECT_ID: $GCP_PROJECT_ID
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - curl -s http://localhost:8085
+      interval: 5s
+      timeout: 5s
+      retries: 3
+    command: ["gcloud", "beta", "emulators", "pubsub", "start", "--project=my-gcp-project", "--host-port", "0.0.0.0:8085"]
+    networks:
+      - internal
+  postgres:
+    image: 'postgres:alpine'
+    volumes:
+      - >-
+        ./scripts/db/dump.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_USER=$MAIN_DATABASE_USER
+      - POSTGRES_PASSWORD=$MAIN_DATABASE_PASSWORD
+      - POSTGRES_DB=$MAIN_SCHEMA_NAME
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U postgres
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+    command: ["postgres", "-c", "log_statement=all"]
+  adminer:
+    image: adminer
+    environment:
+      - ADMINER_DEFAULT_SERVER=postgres
+    ports:
+      - '8000:8080'
+    networks:
+      - internal
+networks:
+  internal:
+    driver: bridge

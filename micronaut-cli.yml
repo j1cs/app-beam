@@ -1,0 +1,6 @@
+applicationType: cli
+defaultPackage: me.jics
+testFramework: junit
+sourceLanguage: java
+buildTool: maven
+features: [annotation-api, app-name, assertj, data, data-jdbc, hamcrest, jackson-databind, java, jdbc-hikari, junit, junit-params, logback, lombok, maven, picocli, picocli-java-application, picocli-junit, postgres, readme, shade, test-resources, testcontainers, yaml]

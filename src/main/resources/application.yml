@@ -1,0 +1,7 @@
+micronaut:
+  application:
+    name: appBeam
+database:
+  url: jdbc:postgresql://${MAIN_DATABASE_HOST}:${MAIN_DATABASE_PORT}/${MAIN_DATABASE_NAME}
+  username: ${MAIN_DATABASE_USER}
+  password: ${MAIN_DATABASE_PASSWORD}
