@@ -14,7 +14,12 @@ import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.Wait;
+import org.apache.beam.sdk.transforms.windowing.AfterProcessingTime;
+import org.apache.beam.sdk.transforms.windowing.AfterWatermark;
+import org.apache.beam.sdk.transforms.windowing.FixedWindows;
+import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.PCollection;
+import org.joda.time.Duration;
 import picocli.CommandLine.Command;
 
 import java.nio.charset.StandardCharsets;
@@ -48,9 +53,14 @@ public class AppBeamCommand implements Runnable {
         Pipeline p = Pipeline.create(options);
 
 
-        PCollection<String> result = p.
-                apply("Pubsub", PubsubIO.readMessagesWithAttributes().fromSubscription(String.format("projects/%s/subscriptions/%s", options.getProjectId(), subscription)))
-                .apply("Transform", ParDo.of(new MyTransformer()));
+        PCollection<String> result = p
+                .apply("Pubsub", PubsubIO.readMessagesWithAttributes().fromSubscription(String.format("projects/%s/subscriptions/%s", options.getProjectId(), subscription)))
+                .apply("Transform", ParDo.of(new MyTransformer()))
+                .apply("Windowing", Window.<String>into(FixedWindows.of(Duration.standardMinutes(1)))
+                        .triggering(AfterWatermark.pastEndOfWindow()
+                                .withEarlyFirings(AfterProcessingTime.pastFirstElementInPane().plusDelayOf(Duration.standardSeconds(30))))
+                        .withAllowedLateness(Duration.standardMinutes(1))
+                        .discardingFiredPanes());
 
         PCollection<Void> insert = result.apply("Inserting",
                 JdbcIO.<String>write()
