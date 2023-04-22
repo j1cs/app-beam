@@ -53,13 +53,14 @@ public class AppBeamCommand implements Runnable {
                 .apply("Transform", ParDo.of(new MyTransformer()));
 
         PCollection<Void> insert = result.apply("Inserting",
-                JdbcIO.<String>writeVoid()
+                JdbcIO.<String>write()
                         .withDataSourceProviderFn(DataSourceProvider.of(authDatabaseConfig))
                         .withStatement("INSERT INTO person (first_name, last_name) VALUES (?, 'doe')")
                         .withPreparedStatementSetter((element, preparedStatement) -> {
                             log.info("Preparing statement to insert");
                             preparedStatement.setString(1, element);
                         })
+                        .withResults()
         );
         result.apply(Wait.on(insert))
                 .apply("Selecting", new SomeTransform())
