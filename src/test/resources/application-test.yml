@@ -1,4 +1,8 @@
 datasources:
   default:
-    url: jdbc:tc:postgresql:12:///postgres
+    url: jdbc:tc:postgresql:14:///postgres
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+database:
+  url: jdbc:postgresql://localhost:5432}/postgres
+  username: postgres
+  password: postgres

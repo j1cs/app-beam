@@ -12,6 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class AppBeamCommandTest {
 
+
+
     @Test
     public void testWithCommandLineOption() throws Exception {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
